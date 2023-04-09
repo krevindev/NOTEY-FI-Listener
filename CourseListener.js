@@ -40,21 +40,23 @@ class CourseListener {
                 .catch(err => 'COURSES ERROR');
 
 
-            if (courses) {
+            if (await courses) {
                 const courseActs = await Promise.all(courses.map(async (course) => {
-                    const activities = await this.getCourseWork(await this.token, course.id).then(acts => acts);
+                    const activities = await this.getCourseWork(await this.token, await course.id).then(acts => acts);
 
                     try {
                         return {
                             course: await course.name,
-                            activities: (activities) ? await activities.map((act) => act.title) : []
+                            activities: (await activities) ? await activities.map((act) => act.title) : []
                         }
                     } catch (err) {
                         console.log(err)
                     }
                 }));
 
-                if (!storedCoursesActivities) storedCoursesActivities = courseActs
+                if (await !storedCoursesActivities) {
+                    storedCoursesActivities = await courseActs
+                }
 
                 //console.log(courseActs)
                 //console.log("STORED:")
@@ -62,7 +64,7 @@ class CourseListener {
                 //console.log("READ:")
                 //console.log(courseActs);
 
-                if (courseActs) {
+                if (await courseActs) {
                     // checks if course list length stayed the same
                     if (courseActs.length == await storedCoursesActivities.length) {
 
@@ -90,24 +92,24 @@ class CourseListener {
                         // if the course list length changed
                     } else {
                         // if the scanned course length is greater than stored
-                        if (courseActs.length > await storedCoursesActivities.length) {
+                        if (await courseActs.length > await storedCoursesActivities.length) {
                             console.log('There might be a new course added!'.toUpperCase());
                             storedCoursesActivities = courseActs;
                             await callSendAPI(await this.sender_psid, { text: `A new course has been added! Named: '${await courseActs[0].course}'` });
                         }
                         // if the scanned course is less than stored
-                        else if (courseActs.length < await storedCoursesActivities.length) {
+                        else if (await courseActs.length < await storedCoursesActivities.length) {
                             console.log(`A class has been removed`.toUpperCase());
 
                             // find the removed course activity
-                            const removedActivity = await storedCoursesActivities.find(async (activity) => !courseActs.includes(await activity));
+                            const removedActivity = await storedCoursesActivities.find(async (activity) => await !courseActs.includes(await activity));
 
                             // log and send a message about the removed course activity
                             console.log(`Removed activity: ${await removedActivity}`);
                             await callSendAPI(await this.sender_psid, { text: `A class has been removed: ${await removedActivity.course}` });
 
                             // update the stored courses activities array
-                            storedCoursesActivities = courseActs;
+                            storedCoursesActivities = await courseActs;
                         } else {
                             console.log("IDK man")
                         }

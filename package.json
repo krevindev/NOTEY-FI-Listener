@@ -17,7 +17,10 @@
     "googleapis": "^114.0.0",
     "mongoose": "^7.0.3",
     "nodemon": "^2.0.22",
-    "request": "^2.88.2"
+    "request": "^2.72.0"
   },
-  "description": ""
+  "description": "",
+  "engines": {
+    "node": "14.x"
+  }
 }
