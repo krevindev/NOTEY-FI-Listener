@@ -238,7 +238,7 @@ app.listen(PORT, console.log('Server is listening to port ' + PORT))
 
 
 // Sends response messages via the Send API
-function callSendPI(sender_psid, response) {
+function callSendAPI(sender_psid, response) {
     // Construct the message body
     let request_body = {
         recipient: {
