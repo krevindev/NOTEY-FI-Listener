@@ -125,7 +125,9 @@ class CourseListener {
         // Keep track of the latest activity time by course ID
 
         // Keep track of the latest activity time by course ID
-        const latestActivityTimeByCourseId = {};
+        let latestActivityTimeByCourseId = {};
+        let earliestActivityTimeByCourseId = {};
+        let existingCourseworkIds = {};
 
         async function checkForActivityChanges(sender_psid) {
             const courses = await classroom.courses.list({
@@ -182,7 +184,7 @@ class CourseListener {
                                     type: "template",
                                     payload: {
                                         template_type: "button",
-                                        text: `New activity added\n'${activity.title}'`,
+                                        text: `New activity added\n'${activity.title}'\nDescription: ${activity.description}`,
                                         buttons: [
                                             {
                                                 type: "web_url",
@@ -214,6 +216,7 @@ class CourseListener {
                 }
             }
         }
+
 
         setInterval(() => checkForActivityChanges(this.sender_psid), 2000); // Check for activity changes every 30 seconds
 
@@ -256,34 +259,36 @@ class CourseListener {
                 const currentCourses = res.data.courses;
 
                 // Check for new added courses
-                if (!firstTime) {
-                    const newCourses = currentCourses.filter((course) => {
-                        return !courses.some((c) => c.id === course.id);
-                    });
-                    newCourses.forEach(async (course) => {
+                if (currentCourses) {
+                    if (!firstTime) {
+                        const newCourses = currentCourses.filter((course) => {
+                            return !courses.some((c) => c.id === course.id);
+                        });
+                        newCourses.forEach(async (course) => {
 
 
-                        const response = {
-                            attachment: {
-                                type: "template",
-                                payload: {
-                                    template_type: "button",
-                                    text: `New course added\n'${course.name}'`,
-                                    buttons: [
-                                        {
-                                            type: "web_url",
-                                            url: course.alternateLink,
-                                            title: `Go to New Course`,
-                                            webview_height_ratio: "full",
-                                        },
-                                    ],
+                            const response = {
+                                attachment: {
+                                    type: "template",
+                                    payload: {
+                                        template_type: "button",
+                                        text: `New course added\n'${course.name}'`,
+                                        buttons: [
+                                            {
+                                                type: "web_url",
+                                                url: course.alternateLink,
+                                                title: `Go to New Course`,
+                                                webview_height_ratio: "full",
+                                            },
+                                        ],
+                                    },
                                 },
-                            },
-                        };
+                            };
 
-                        console.log(`New course added: ${course.name}`);
-                        await callSendAPI(this.sender_psid, response)
-                    });
+                            console.log(`New course added: ${course.name}`);
+                            await callSendAPI(this.sender_psid, response)
+                        });
+                    }
                 }
 
                 // Check for removed courses
@@ -390,19 +395,18 @@ class CourseListener {
 }
 
 
-async function getUers() {
+async function getUsers() {
     db.once('open', async () => {
         const users = await db.collection('noteyfi_users').find().toArray((err, res) => res);
 
         users.forEach(user => {
             new CourseListener(user).listenCourseChange();
-          
-            //new CourseListener(user).pushNotification();
+            new CourseListener(user).pushNotification();
         })
     })
 }
 
-getUsers()
+getUsers(
 
 app.listen(PORT, console.log('Server is listening to port ' + PORT))
 
