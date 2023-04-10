@@ -244,7 +244,7 @@ class CourseListener {
                         }
                     } else {
                         console.log("No Work");
-                        activityChanges.data.courseWork = []
+                        latestActivityTime = null;
                     }
                 } catch (err) {
                     console.error(`Error retrieving activity changes for course ${course.name}: ${err}`);
