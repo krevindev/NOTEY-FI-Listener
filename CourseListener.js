@@ -102,6 +102,114 @@ class CourseListener {
 
     }
 
+    async pushNotificaion() {
+        console.log('PUSH')
+        const auth = new google.auth.OAuth2(
+            CLIENT_ID,
+            CLIENT_SECRET,
+            REDIRECT_URI
+        );
+
+        auth.setCredentials({
+            // Replace the following with your own values
+            access_token: this.token.access_token,
+            refresh_token: this.token.refresh_token
+        });
+
+        const classroom = google.classroom({
+            version: 'v1',
+            auth: auth
+        });
+
+        // Set up a unique channel ID to use for push notifications
+        // Keep track of the latest activity time by course ID
+
+        // Keep track of the latest activity time by course ID
+        const latestActivityTimeByCourseId = {};
+
+        async function checkForActivityChanges(sender_psid) {
+            const courses = await classroom.courses.list({
+                courseStates: ['ACTIVE']
+            });
+
+            for (const course of courses.data.courses) {
+                const courseId = course.id;
+
+                const latestActivityTime = latestActivityTimeByCourseId[courseId];
+
+                let activityChanges;
+
+                if (latestActivityTime) {
+                    activityChanges = await classroom.courses.courseWork.list({
+                        courseId: courseId,
+                        orderBy: 'updateTime desc',
+                        pageSize: 1,
+                        pageToken: null,
+                        //fields: 'courseWork(id,title),courseId'
+                    });
+                } else {
+                    activityChanges = await classroom.courses.courseWork.list({
+                        courseId: courseId,
+                        orderBy: 'updateTime desc',
+                        pageSize: 1,
+                        pageToken: null,
+                        //fields: 'courseWork(id,title),courseId'
+                    });
+                }
+
+                try {
+                    if (activityChanges.data.courseWork.length > 0) {
+                        const activity = activityChanges.data.courseWork[0];
+
+                        const activityTime = new Date(activity.updateTime).getTime();
+
+                        if (await latestActivityTime && await activityTime > await latestActivityTime) {
+
+                            const activityType = activity.workType === 'ASSIGNMENT' ? 'work' : 'a';
+                            const activityLink = `https://classroom.google.com/c/${courseId}/${activityType}/${activity.id}`;
+
+                            const response = {
+                                attachment: {
+                                    type: "template",
+                                    payload: {
+                                        template_type: "button",
+                                        text: `New course added\n'${course.name}'`,
+                                        buttons: [
+                                            {
+                                                type: "web_url",
+                                                url: activityLink,
+                                                title: `Go to New Activity`,
+                                                webview_height_ratio: "full",
+                                            },
+                                        ],
+                                    },
+                                },
+                            };
+
+                            console.log(`New activity in course "${course.name}": ${activity.title}`);
+                            console.log("TYPE: " + activity.workType)
+                            console.log(`Activity link: https://classroom.google.com/c/${course.id}/a/${activity.id}`);
+                            await callSendAPI(sender_psid, response)
+                        } else if (!latestActivityTime) {
+                            console.log(`Latest activity in course "${course.name}": ${activity.title}`);
+                            console.log(`Activity link: https://classroom.google.com/c/${course.id}/a/${activity.id}`);
+                        }
+
+                        latestActivityTimeByCourseId[courseId] = activityTime;
+                    }
+                } catch (err) {
+                    console.error(`Error retrieving activity changes for course ${course.name}: ${err}`);
+
+                }
+            }
+        }
+
+        setInterval(() => checkForActivityChanges(this.sender_psid), 2000); // Check for activity changes every 30 seconds
+
+
+    }
+
+
     async listenCourseChange() {
         const auth = new google.auth.OAuth2(
             CLIENT_ID,
@@ -188,17 +296,6 @@ class CourseListener {
         }, 2000);
     }
 
-    async hasWorkBeenSubmitted(courseId, courseWorkId, userId, auth) {
-        const res = await classroom.courses.courseWork.studentSubmissions.list({
-            auth: auth,
-            courseId: courseId,
-            courseWorkId: courseWorkId,
-            userId: userId
-        });
-
-        // Check if the list of submissions is not empty
-        return res.data.studentSubmissions.length > 0;
-    }
 
     async getCourseWorks(token, courseId) {
         const oauth2Client = new OAuth2Client(
@@ -278,7 +375,7 @@ async function getUsers() {
         const users = await db.collection('noteyfi_users').find().toArray((err, res) => res);
 
         users.forEach(user => {
-            new CourseListener(user).listenCourseChange()
+            new CourseListener(user).pushNotification()
         })
 
     })
