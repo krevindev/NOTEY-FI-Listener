@@ -185,10 +185,15 @@ class CourseListener {
                                 }
                                 activityLink = `https://classroom.google.com/c/${courseId}/${activityType}/${activity.id}`;
 
-                                // activity deadline Date
-                                let dueDate = new Date(activity.dueDate.year, activity.dueDate.month, activity.dueDate.date); // Note that month is zero-indexed, so April (4th month) is represented by 3
-                                const longDateFormat = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                                dueDate = dueDate.toLocaleDateString('en-US', longDateFormat); // Output: Friday, April 15, 2023
+                                let dueDate;
+                                if (activity.dueDate) {
+                                    // activity deadline Date
+                                    dueDate = new Date(activity.dueDate.year, activity.dueDate.month, activity.dueDate.date); // Note that month is zero-indexed, so April (4th month) is represented by 3
+                                    const longDateFormat = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                                    dueDate = dueDate.toLocaleDateString('en-US', longDateFormat); // Output: Friday, April 15, 2023
+                                } else {
+                                    dueDate = 'Unset'
+                                }
 
 
                                 const response = {
@@ -196,10 +201,11 @@ class CourseListener {
                                         type: "template",
                                         payload: {
                                             template_type: "button",
-                                            text: `NEW ACTIVITY ADDED! from ${course.name}\n'${activity.title}'
-                                            \n\nDESCRIPTION:
-                                            \n ${activity.description}
-                                            DEADLINE: ${dueDate}`,
+                                            text: `NEW ACTIVITY ADDED!
+                                            \nCourse:\n${course.name}
+                                            \nActivity:\n${activity.title}
+                                            \n\nDESCRIPTION:\n ${activity.description}
+                                            \nDEADLINE:\n${dueDate}`,
                                             buttons: [
                                                 {
                                                     type: "web_url",
@@ -237,7 +243,8 @@ class CourseListener {
                             latestActivityTimeByCourseId[courseId] = activityTime;
                         }
                     } else {
-                        console.log("No Work")
+                        console.log("No Work");
+                        activityChanges.data.courseWork = []
                     }
                 } catch (err) {
                     console.error(`Error retrieving activity changes for course ${course.name}: ${err}`);
@@ -470,4 +477,3 @@ function callSendAPI(sender_psid, response) {
         );
     });
 }
-
