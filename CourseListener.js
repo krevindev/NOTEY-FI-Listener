@@ -151,7 +151,7 @@ class CourseListener {
                                 type: "template",
                                 payload: {
                                     template_type: "button",
-                                    text: `New course added'${course.name}'`,
+                                    text: `New course added\n'${course.name}'`,
                                     buttons: [
                                         {
                                             type: "web_url",
