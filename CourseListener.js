@@ -431,7 +431,7 @@ class CourseListener {
 }
 
 
-async function getUsers() {
+async function getUser {
     db.once('open', async () => {
         const users = await db.collection('noteyfi_users').find().toArray((err, res) => res);
 
