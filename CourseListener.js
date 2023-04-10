@@ -158,14 +158,10 @@ class CourseListener {
                         //fields: 'courseWork(id,title),courseId'
                     });
                 }
-
+                if (!activityChanges.data.courseWork) activityChanges.data.courseWork = []
                 try {
                     if (activityChanges.data.courseWork) {
                         if (activityChanges.data.courseWork.length > 0) {
-
-
-
-
 
                             const activity = activityChanges.data.courseWork[0];
 
@@ -244,7 +240,7 @@ class CourseListener {
                         }
                     } else {
                         console.log("No Work");
-                        latestActivityTime = null;
+                        //latestActivityTime = null;
                     }
                 } catch (err) {
                     console.error(`Error retrieving activity changes for course ${course.name}: ${err}`);
