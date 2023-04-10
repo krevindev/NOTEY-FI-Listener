@@ -160,55 +160,84 @@ class CourseListener {
                 }
 
                 try {
-                    if (activityChanges.data.courseWork.length > 0) {
-                        const activity = activityChanges.data.courseWork[0];
+                    if (activityChanges.data.courseWork) {
+                        if (activityChanges.data.courseWork.length > 0) {
 
-                        const activityTime = new Date(activity.updateTime).getTime();
 
-                        if (await latestActivityTime && await activityTime > await latestActivityTime) {
-                            let activityLink;
-                            let activityType = '';
 
-                            if (activity.workType === 'ASSIGNMENT') {
-                                activityType = 'work';
-                            } else if (activity.workType === 'TOPIC') {
-                                activityType = 'topic';
-                            } else {
-                                console.log(`Unknown work type for activity "${activity.title}"`);
-                                continue;
-                            }
-                            activityLink = `https://classroom.google.com/c/${courseId}/${activityType}/${activity.id}`;
 
-                            const response = {
-                                attachment: {
-                                    type: "template",
-                                    payload: {
-                                        template_type: "button",
-                                        text: `New activity added\n'${activity.title}'\nDescription: ${activity.description}`,
-                                        buttons: [
-                                            {
-                                                type: "web_url",
-                                                url: activity.alternateLink,
-                                                title: `Go to New Activity`,
-                                                webview_height_ratio: "full",
-                                            },
-                                        ],
+
+                            const activity = activityChanges.data.courseWork[0];
+
+                            const activityTime = new Date(activity.updateTime).getTime();
+
+                            if (await latestActivityTime && await activityTime > await latestActivityTime) {
+                                let activityLink;
+                                let activityType = '';
+
+                                if (activity.workType === 'ASSIGNMENT') {
+                                    activityType = 'work';
+                                } else if (activity.workType === 'TOPIC') {
+                                    activityType = 'topic';
+                                } else {
+                                    console.log(`Unknown work type for activity "${activity.title}"`);
+                                    continue;
+                                }
+                                activityLink = `https://classroom.google.com/c/${courseId}/${activityType}/${activity.id}`;
+
+                                // activity deadline Date
+                                let dueDate = new Date(activity.dueDate.year, activity.dueDate.month, activity.dueDate.date); // Note that month is zero-indexed, so April (4th month) is represented by 3
+                                const longDateFormat = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                                dueDate = dueDate.toLocaleDateString('en-US', longDateFormat); // Output: Friday, April 15, 2023
+
+
+                                const response = {
+                                    attachment: {
+                                        type: "template",
+                                        payload: {
+                                            template_type: "button",
+                                            text: `NEW ACTIVITY ADDED! from ${course.name}\n'${activity.title}'
+                                            \n\nDESCRIPTION:
+                                            \n ${activity.description}
+                                            DEADLINE: ${dueDate}`,
+                                            buttons: [
+                                                {
+                                                    type: "web_url",
+                                                    url: activity.alternateLink,
+                                                    title: `Go to New Activity`,
+                                                    webview_height_ratio: "full",
+                                                }, {
+                                                    type: "postback",
+                                                    title: `Set Reminder`,
+                                                    webview_height_ratio: "full",
+                                                    payload: "set_reminder"
+                                                },
+                                                {
+                                                    type: "postback",
+                                                    title: `Return to Menu`,
+                                                    webview_height_ratio: "full",
+                                                    payload: "menu"
+                                                },
+                                            ],
+                                        },
                                     },
-                                },
-                            };
+                                };
 
 
-                            console.log(`New activity in course "${course.name}": ${activity.title}`);
-                            console.log(`Activity link: https://classroom.google.com/c/${course.id}/a/${activity.id}`);
-                            console.log('LNK: ' + activityLink)
-                            await callSendAPI(await sender_psid, await response)
-                        } else if (!latestActivityTime) {
-                            console.log(`Latest activity in course "${course.name}": ${activity.title}`);
-                            console.log(`Activity link: https://classroom.google.com/c/${course.id}/a/${activity.id}`);
-                            //console.log('LNK: ' + activityLink);
+                                console.log(`New activity in course "${course.name}": ${activity.title}`);
+                                console.log(`Activity link: https://classroom.google.com/c/${course.id}/a/${activity.id}`);
+                                console.log('LNK: ' + activityLink)
+                                await callSendAPI(await sender_psid, await response)
+                            } else if (!latestActivityTime) {
+                                console.log(`Latest activity in course "${course.name}": ${activity.title}`);
+                                console.log(`Activity link: https://classroom.google.com/c/${course.id}/a/${activity.id}`);
+                                //console.log('LNK: ' + activityLink);
+                            }
+
+                            latestActivityTimeByCourseId[courseId] = activityTime;
                         }
-
-                        latestActivityTimeByCourseId[courseId] = activityTime;
+                    } else {
+                        console.log("No Work")
                     }
                 } catch (err) {
                     console.error(`Error retrieving activity changes for course ${course.name}: ${err}`);
@@ -406,7 +435,7 @@ async function getUsers() {
     })
 }
 
-getUser();
+getUsers();
 
 app.listen(PORT, console.log('Server is listening to port ' + PORT))
 
