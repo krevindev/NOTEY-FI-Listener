@@ -343,6 +343,23 @@ class CourseListener {
     }
 
     async hasWorkBeenSubmitted(courseId, courseWorkId, userId, auth) {
+
+        const oauth2Client = new OAuth2Client(
+            CLIENT_ID,
+            CLIENT_SECRET,
+            REDIRECT_URI
+        )
+
+        oauth2Client.setCredentials({
+            access_token: token.access_token,
+            refresh_token: token.refresh_token
+        });
+
+        const classroom = google.classroom({
+            version: "v1",
+            auth: oauth2Client,
+        });
+
         const res = await classroom.courses.courseWork.studentSubmissions.list({
             auth: auth,
             courseId: courseId,
