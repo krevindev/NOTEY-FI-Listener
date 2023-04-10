@@ -102,7 +102,7 @@ class CourseListener {
 
     }
 
-    async pushNotificaion() {
+    async pushNotification() {
         console.log('PUSH')
         const auth = new google.auth.OAuth2(
             CLIENT_ID,
@@ -164,16 +164,25 @@ class CourseListener {
                         const activityTime = new Date(activity.updateTime).getTime();
 
                         if (await latestActivityTime && await activityTime > await latestActivityTime) {
+                            let activityLink;
+                            let activityType = '';
 
-                            const activityType = activity.workType === 'ASSIGNMENT' ? 'work' : 'a';
-                            const activityLink = `https://classroom.google.com/c/${courseId}/${activityType}/${activity.id}`;
+                            if (activity.workType === 'ASSIGNMENT') {
+                                activityType = 'work';
+                            } else if (activity.workType === 'TOPIC') {
+                                activityType = 'topic';
+                            } else {
+                                console.log(`Unknown work type for activity "${activity.title}"`);
+                                continue;
+                            }
+                            activityLink = `https://classroom.google.com/c/${courseId}/${activityType}/${activity.id}`;
 
                             const response = {
                                 attachment: {
                                     type: "template",
                                     payload: {
                                         template_type: "button",
-                                        text: `New course added\n'${course.name}'`,
+                                        text: `New activity added\n'${activity.title}'`,
                                         buttons: [
                                             {
                                                 type: "web_url",
@@ -186,13 +195,15 @@ class CourseListener {
                                 },
                             };
 
+
                             console.log(`New activity in course "${course.name}": ${activity.title}`);
-                            console.log("TYPE: " + activity.workType)
                             console.log(`Activity link: https://classroom.google.com/c/${course.id}/a/${activity.id}`);
-                            await callSendAPI(sender_psid, response)
+                            console.log('LNK: ' + activityLink)
+                            await callSendAPI(await sender_psid, await response)
                         } else if (!latestActivityTime) {
                             console.log(`Latest activity in course "${course.name}": ${activity.title}`);
                             console.log(`Activity link: https://classroom.google.com/c/${course.id}/a/${activity.id}`);
+                            //console.log('LNK: ' + activityLink);
                         }
 
                         latestActivityTimeByCourseId[courseId] = activityTime;
@@ -296,6 +307,17 @@ class CourseListener {
         }, 2000);
     }
 
+    async hasWorkBeenSubmitted(courseId, courseWorkId, userId, auth) {
+        const res = await classroom.courses.courseWork.studentSubmissions.list({
+            auth: auth,
+            courseId: courseId,
+            courseWorkId: courseWorkId,
+            userId: userId
+        });
+
+        // Check if the list of submissions is not empty
+        return res.data.studentSubmissions.length > 0;
+    }
 
     async getCourseWorks(token, courseId) {
         const oauth2Client = new OAuth2Client(
