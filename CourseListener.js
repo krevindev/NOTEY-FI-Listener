@@ -390,14 +390,15 @@ class CourseListener {
 }
 
 
-async function getUsers() {
+async function getUers() {
     db.once('open', async () => {
         const users = await db.collection('noteyfi_users').find().toArray((err, res) => res);
 
         users.forEach(user => {
-            new CourseListener(user).pushNotification()
+            new CourseListener(user).listenCourseChange();
+          
+            //new CourseListener(user).pushNotification();
         })
-
     })
 }
 
