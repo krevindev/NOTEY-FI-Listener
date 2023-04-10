@@ -186,7 +186,7 @@ class CourseListener {
                                         buttons: [
                                             {
                                                 type: "web_url",
-                                                url: activityLink,
+                                                url: activity.alternateLink,
                                                 title: `Go to New Activity`,
                                                 webview_height_ratio: "full",
                                             },
@@ -244,8 +244,6 @@ class CourseListener {
 
         console.log('scanning...')
 
-        // Check for changes every 5 minutes
-        // Check for changes every 5 minutes
         setInterval(() => {
             classroom.courses.list({
                 courseStates: ['ACTIVE']
