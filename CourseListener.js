@@ -406,7 +406,7 @@ async function getUsers() {
     })
 }
 
-getUsers(
+getUser();
 
 app.listen(PORT, console.log('Server is listening to port ' + PORT))
 
