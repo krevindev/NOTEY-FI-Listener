@@ -186,14 +186,16 @@ class CourseListener {
 
                                 if (activity.dueDate) {
                                     var dueDate = new Date(activity.dueDate.year, activity.dueDate.month, activity.dueDate.day);
-                                    var dueTime = new Date(activity.dueTime.hours, activity.dueTime.minutes, activity.dueTime.seconds);
+                                    var dueTime = new Date(activity.dueTime);
+
+                                    var formattedHour = dueTime.getHours().toLocaleString('en-US', { hour: 'long' });
+                                    var formattedMinutes = dueTime.getMinutes().toLocaleString('en-US', { minute: 'long' })
 
                                     // Format the due date and time in a long format
                                     var formattedDate = dueDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-                                    var formattedTime = dueTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
 
                                     // Display the formatted date and time
-                                    dateTime = `Date: ${String(formattedDate)} Time: ${String(formattedTime)}`
+                                    //dateTime = `Date: ${String(formattedDate)} Time: ${String(formattedTime)}`
                                 } else {
                                     dateTime = 'Unset'
                                 }
@@ -208,7 +210,7 @@ class CourseListener {
                                             \nCourse:\n${course.name}
                                             \nActivity:\n${activity.title}
                                             \n\nDESCRIPTION:\n ${activity.description}
-                                            \nDEADLINE:\n${dateTime}`,
+                                            \nDEADLINE:\n${formattedDate} at ${formattedHour}:${formattedMinutes}`,
                                             buttons: [
                                                 {
                                                     type: "web_url",
