@@ -180,14 +180,22 @@ class CourseListener {
                                 }
                                 activityLink = `https://classroom.google.com/c/${courseId}/${activityType}/${activity.id}`;
 
-                                let dueDate;
+                                // Get the due date and time from the coursework activity
+
+                                let dateTime = ''
+
                                 if (activity.dueDate) {
-                                    // activity deadline Date
-                                    dueDate = new Date(activity.dueDate.year, activity.dueDate.month, activity.dueDate.date); // Note that month is zero-indexed, so April (4th month) is represented by 3
-                                    const longDateFormat = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-                                    dueDate = dueDate.toLocaleDateString('en-US', longDateFormat); // Output: Friday, April 15, 2023
+                                    var dueDate = new Date(activity.dueDate.year, activity.dueDate.month, activity.dueDate.day);
+                                    var dueTime = new Date(activity.dueTime.hours, activity.dueTime.minutes, activity.dueTime.seconds);
+
+                                    // Format the due date and time in a long format
+                                    var formattedDate = dueDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                                    var formattedTime = dueTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+
+                                    // Display the formatted date and time
+                                    dateTime = `Date: ${String(formattedDate)} Time: ${String(formattedTime)}`
                                 } else {
-                                    dueDate = 'Unset'
+                                    dateTime = 'Unset'
                                 }
 
 
@@ -200,7 +208,7 @@ class CourseListener {
                                             \nCourse:\n${course.name}
                                             \nActivity:\n${activity.title}
                                             \n\nDESCRIPTION:\n ${activity.description}
-                                            \nDEADLINE:\n${dueDate}`,
+                                            \nDEADLINE:\n${dateTime}`,
                                             buttons: [
                                                 {
                                                     type: "web_url",
@@ -448,24 +456,24 @@ async function getUsers() {
     db.once('open', async () => {
         const users = await db.collection('noteyfi_users').find().toArray((err, res) => res);
 
-          users.forEach(user => {
-            try{
-              // if the user has a vle_accounts property
-              if(user.vle_accounts){
-                // if user is not on subscribedUsers
-                if(!subscribedUsers.includes(user.psid)){
-                  // create CourseListeners to the user
-                  new CourseListener(user).listenCourseChange();
-                  new CourseListener(user).pushNotification();
-                  subscribedUsers.push(user.psid);
+        users.forEach(user => {
+            try {
+                // if the user has a vle_accounts property
+                if (user.vle_accounts) {
+                    // if user is not on subscribedUsers
+                    if (!subscribedUsers.includes(user.psid)) {
+                        // create CourseListeners to the user
+                        new CourseListener(user).listenCourseChange();
+                        new CourseListener(user).pushNotification();
+                        subscribedUsers.push(user.psid);
+                    }
                 }
-              }
-            }catch(err){
-              console.log("User DB Error");
-              console.log("Error: "+ err)
+            } catch (err) {
+                console.log("User DB Error");
+                console.log("Error: " + err)
             }
         })
-       
+
     })
 }
 
@@ -474,8 +482,8 @@ getUsers();
 app.listen(PORT, console.log('Server is listening to port ' + PORT));
 
 
-app.get('/subscribe_users', (req ,res) => {
-  getUsers();
+app.get('/subscribe_users', (req, res) => {
+    getUsers();
 });
 
 
