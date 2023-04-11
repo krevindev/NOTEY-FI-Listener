@@ -15,7 +15,6 @@ const SCOPES = 'https://www.googleapis.com/auth/classroom.courses.readonly https
 
 console.log(SCOPES)
 
-
 const mongoose = require("./useDB.js");
 const db = mongoose.connection;
 
@@ -448,21 +447,27 @@ async function getUsers() {
     db.once('open', async () => {
         const users = await db.collection('noteyfi_users').find().toArray((err, res) => res);
 
-        try{
           users.forEach(user => {
-            new CourseListener(user).listenCourseChange();
-            new CourseListener(user).pushNotification();
+            try{
+              new CourseListener(user).listenCourseChange();
+              new CourseListener(user).pushNotification();
+            }catch(err){
+              console.log("User DB Error");
+              console.log("Error: "+ err)
+            }
         })
-        }catch(err){
-          console.log("DB Retrieve Failed!");
-          console.log("Error: "+err);
-        }
+       
     })
 }
 
 getUsers();
 
-app.listen(PORT, console.log('Server is listening to port ' + PORT))
+app.listen(PORT, console.log('Server is listening to port ' + PORT));
+
+
+app.get('/subscribe_users', (req ,res) => {
+  
+})
 
 
 // Sends response messages via the Send API
