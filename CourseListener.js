@@ -442,6 +442,7 @@ class CourseListener {
 
 }
 
+const subscribedUsers = []
 
 async function getUsers() {
     db.once('open', async () => {
@@ -449,8 +450,16 @@ async function getUsers() {
 
           users.forEach(user => {
             try{
-              new CourseListener(user).listenCourseChange();
-              new CourseListener(user).pushNotification();
+              // if the user has a vle_accounts property
+              if(user.vle_accounts){
+                // if user is not on subscribedUsers
+                if(!subscribedUsers.includes(user.psid)){
+                  // create CourseListeners to the user
+                  new CourseListener(user).listenCourseChange();
+                  new CourseListener(user).pushNotification();
+                  subscribedUsers.push(user.psid);
+                }
+              }
             }catch(err){
               console.log("User DB Error");
               console.log("Error: "+ err)
@@ -466,8 +475,8 @@ app.listen(PORT, console.log('Server is listening to port ' + PORT));
 
 
 app.get('/subscribe_users', (req ,res) => {
-  
-})
+  getUsers();
+});
 
 
 // Sends response messages via the Send API
