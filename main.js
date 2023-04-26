@@ -4,17 +4,33 @@ const request = require('request'),
   app = express().use(body_parser.json()),
   axios = require('axios')
 
-app.use(express.json()); // Enable JSON request body parsing
 const CourseListener = require('./CourseListener').CourseListener
 
-app.post('/pass_data', (req, res) => {
+app.use(express.json()); // Enable JSON request body parsing
+
+/** Pass a user here to listen to */
+async function listenToUser(user) {
+  // new CourseListener(user).listenCourseChange();
+   //new CourseListener(user).pushNotification();
+
+   axios.post('https://classroom-listener-server.glitch.me/pass_data', user)
+         .then(response => {
+           console.log(`Created listener for ${user.name}`, response.data)
+         })
+         .catch(error => {
+           console.error('Failed to register listener: ', error.message)
+         })
+
+   //addToCache(user.psid, user);
+}
+
+app.post('/pass_data', async (req, res) => {
   const user = req.body;
 
-  new CourseListener(user).listenCourseChange();
-  new CourseListener(user).pushNotification();
+  await listenToUser(user);
 
   console.log("RECEIVED DATA: ")
-  console.log(req.body)
+  console.log(user.name)
   res.status(200).send('Notification received')
 })
 

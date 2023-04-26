@@ -12,8 +12,6 @@ const app = express()
 const mongoose = require('./useDB.js')
 const db = mongoose.connection
 
-const botResponses = require('./bot-responses')
-
 class CourseListener {
   constructor(participantID) {
     this.participantID = participantID
