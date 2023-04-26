@@ -13,12 +13,12 @@ const mongoose = require('./useDB.js')
 const db = mongoose.connection
 
 class CourseListener {
-  constructor(participantID) {
+  constructor (participantID) {
     this.participantID = participantID
     this.sender_psid = participantID.psid
     this.token = this.participantID.vle_accounts[0]
   }
-  async listen() {
+  async listen () {
     console.log('test')
 
     let storedCourseList
@@ -261,7 +261,7 @@ class CourseListener {
    
     */
 
-  async pushNotification() {
+  async pushNotification () {
     const auth = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI)
 
     // Set the credentials for the Google Classroom API
@@ -285,7 +285,7 @@ class CourseListener {
 
     console.log('Started Checking CourseWorks')
     // Function to check for changes in activity
-    async function checkForActivityChanges(sender_psid) {
+    async function checkForActivityChanges (sender_psid) {
       // Get the list of active courses from the Google Classroom API
       const courses = await classroom.courses.list({
         courseStates: ['ACTIVE']
@@ -299,7 +299,7 @@ class CourseListener {
           courseId: courseID,
           orderBy: 'updateTime desc'
         })
-        courseActivities = (await courseActivities.data.courseWork) ? await courseActivities.data.courseWork : []
+        courseActivities = (await courseActivities.data.courseWork)?await courseActivities.data.courseWork:[]
 
         let lastCourseActivity = await classroom.courses.courseWork.list({
           courseId: courseID,
@@ -308,140 +308,145 @@ class CourseListener {
           pageToken: null
           //fields: 'courseWork(id,title),courseId'
         })
-        lastCourseActivity = await (courseActivities[0]) ? courseActivities[0] : { id: "void" }
+        lastCourseActivity = await (courseActivities[0])?courseActivities[0]:{id: "void"}
 
-        if (!STOREDLIST[course.id]) {
-          STOREDLIST[course.id] = await courseActivities.map(ca => ca.title)
+        if(!STOREDLIST[course.id]){
+            STOREDLIST[course.id] = await courseActivities.map(ca => ca.title)
         }
 
-        if (await STOREDLIST[course.id].length !== await courseActivities.length) {
+        if(await STOREDLIST[course.id].length !== await courseActivities.length){
 
-          if (await STOREDLIST[course.id].length <= await courseActivities.length) {
-            STOREDLIST[course.id] = await courseActivities.map(ca => ca.title)
+            if(await STOREDLIST[course.id].length <= await courseActivities.length){
+                STOREDLIST[course.id] = await courseActivities.map(ca => ca.title)
 
-            let activity = lastCourseActivity
-
-            let activityLink
-            let activityType = ''
-
-            if (activity.workType === 'ASSIGNMENT') {
-              activityType = 'work'
-            } else if (activity.workType === 'TOPIC') {
-              activityType = 'topic'
-            } else {
-              console.log(`Unknown work type for activity "${activity.title}"`)
-              continue
-            }
-            activityLink = `https://classroom.google.com/c/${courseID}/${activityType}/${activity.id}`
-
-            // Get the due date and time from the coursework activity
-            let deadlineDate
-            let deadlineDateString
-            let reminderDate = new Date()
-
-            const dueDate = activity.dueDate
-            const dueTime = activity.dueTime
-
-            if (activity.dueDate) {
-              deadlineDate = new Date(
-                dueDate.year,
-                dueDate.month - 1,
-                dueDate.day,
-                dueTime
-                  ? dueTime.hours > 12
-                    ? dueTime.hours - 12
-                    : dueTime.hours
-                  : 12,
-                dueTime ? dueTime.minutes : 0
-              )
-              deadlineDateString = deadlineDate.toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: 'numeric',
-                second: 'numeric',
-                timeZone: 'Asia/Manila'
-              })
-              console.log('DEADLINE: ' + deadlineDate)
-              reminderDate.setDate(deadlineDate.getDate() - 7)
-              console.log(
-                reminderDate.toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                  hour: 'numeric',
-                  minute: 'numeric',
-                  second: 'numeric',
-                  timeZone: 'Asia/Manila'
-                })
-              )
-            } else {
-              deadlineDate = 'Unset'
-            }
-
-            let responseButtons = [
-              {
-                type: 'web_url',
-                url: activity.alternateLink,
-                title: `Go to New Activity`,
-                webview_height_ratio: 'full'
-              },
-              {
-                type: 'postback',
-                title: `Return to Menu`,
-                webview_height_ratio: 'full',
-                payload: 'menu'
-              }
-            ]
-
-            if (activity.dueDate) {
-              // Create the new button object
-              const newButton = {
-                type: 'postback',
-                title: `Set Reminder`,
-                webview_height_ratio: 'full',
-                payload: `rem_sa:${courseID}:${activity.id}`
-              }
-
-              // Insert the new button object at index 1 using splice()
-              responseButtons.splice(1, 0, newButton)
-            }
-
-            // Send the notification to the user
-            const response = {
-              attachment: {
-                type: 'template',
-                payload: {
-                  template_type: 'button',
-                  text: `NEW ACTIVITY ADDED!
+                    let activity = lastCourseActivity
+        
+                    let activityLink
+                    let activityType = ''
+        
+                    if (activity.workType === 'ASSIGNMENT') {
+                      activityType = 'work'
+                    } else if (activity.workType === 'TOPIC') {
+                      activityType = 'topic'
+                    } else {
+                      console.log(`Unknown work type for activity "${activity.title}"`)
+                      continue
+                    }
+                    activityLink = `https://classroom.google.com/c/${courseID}/${activityType}/${activity.id}`
+        
+                    // Get the due date and time from the coursework activity
+                    let deadlineDate
+                    let deadlineDateString
+                    let reminderDate = new Date()
+        
+                    const dueDate = activity.dueDate
+                    const dueTime = activity.dueTime
+        
+                    if (activity.dueDate) {
+                      deadlineDate = new Date(
+                        dueDate.year,
+                        dueDate.month - 1,
+                        dueDate.day,
+                        dueTime
+                          ? dueTime.hours > 12
+                            ? dueTime.hours - 12
+                            : dueTime.hours
+                          : 12,
+                        dueTime ? dueTime.minutes : 0
+                      )
+                      deadlineDateString = deadlineDate.toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        second: 'numeric',
+                        timeZone: 'Asia/Manila'
+                      })
+                      console.log('DEADLINE: ' + deadlineDate)
+                      reminderDate.setDate(deadlineDate.getDate() - 7)
+                      console.log(
+                        reminderDate.toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: 'numeric',
+                          minute: 'numeric',
+                          second: 'numeric',
+                          timeZone: 'Asia/Manila'
+                        })
+                      )
+                    } else {
+                      deadlineDate = 'Unset'
+                    }
+        
+                    let responseButtons = [
+                      {
+                        type: 'web_url',
+                        url: activity.alternateLink,
+                        title: `Go to New Activity`,
+                        webview_height_ratio: 'full'
+                      },
+                      {
+                        type: 'postback',
+                        title: `Return to Menu`,
+                        webview_height_ratio: 'full',
+                        payload: 'menu'
+                      }
+                    ]
+        
+                    if (activity.dueDate) {
+                      // Create the new button object
+                      const newButton = {
+                        type: 'postback',
+                        title: `Set Reminder`,
+                        webview_height_ratio: 'full',
+                        payload: `rem_sa:${courseID}:${activity.id}`
+                      }
+        
+                      // Insert the new button object at index 1 using splice()
+                      responseButtons.splice(1, 0, newButton)
+                    }
+        
+                    // Send the notification to the user
+                    const response = {
+                      attachment: {
+                        type: 'template',
+                        payload: {
+                          template_type: 'button',
+                          text: `NEW ACTIVITY ADDED!
                                     \nCourse:\n${course.name}
                                     \nActivity:\n${activity.title}
-                                    ${activity.description
-                      ? `\n\nDESCRIPTION:\n ${activity.description}`
-                      : ''
+                                    ${
+                                      activity.description
+                                        ? `\n\nDESCRIPTION:\n ${activity.description}`
+                                        : ''
+                                    }
+                                    \n${
+                                      activity.dueDate
+                                        ? `DEADLINE:\n${deadlineDateString}`
+                                        : ''
+                                    }`,
+                          buttons: responseButtons
+                        }
+                      }
                     }
-                                    \n${activity.dueDate
-                      ? `DEADLINE:\n${deadlineDateString}`
-                      : ''
-                    }`,
-                  buttons: responseButtons
-                }
-              }
+        
+                    console.log(
+                      `New activity in course "${course.name}": ${activity.title}`
+                    )
+                    console.log(
+                      `Activity link: https://classroom.google.com/c/${course.id}/a/${activity.id}`
+                    )
+                    console.log('LNK: ' + activityLink)
+                    await callSendAPI(await sender_psid, await response)
             }
-
-            console.log(
-              `New activity in course "${course.name}": ${activity.title}`
-            )
-            console.log(
-              `Activity link: https://classroom.google.com/c/${course.id}/a/${activity.id}`
-            )
-            console.log('LNK: ' + activityLink)
-            await callSendAPI(await sender_psid, await response)
-          }
+            
         }
+
+        
       }
     }
 
@@ -451,7 +456,7 @@ class CourseListener {
     ) // Check for activity changes every 30 seconds
   }
 
-  async listenCourseChange() {
+  async listenCourseChange () {
     const auth = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, REDIRECT_URI)
 
     auth.setCredentials({
@@ -566,105 +571,7 @@ class CourseListener {
       })
     }, 4000)
   }
-
-  async hasWorkBeenSubmitted(courseId, courseWorkId, userId, auth) {
-    const oauth2Client = new OAuth2Client(
-      CLIENT_ID,
-      CLIENT_SECRET,
-      REDIRECT_URI
-    )
-
-    oauth2Client.setCredentials({
-      access_token: this.token.access_token,
-      refresh_token: this.token.refresh_token
-    })
-
-    const classroom = google.classroom({
-      version: 'v1',
-      auth: oauth2Client
-    })
-
-    const res = await classroom.courses.courseWork.studentSubmissions.list({
-      auth: auth,
-      courseId: courseId,
-      courseWorkId: courseWorkId,
-      userId: userId
-    })
-
-    // Check if the list of submissions is not empty
-    return res.data.studentSubmissions.length > 0
-  }
-
-  async getCourseWorks(token, courseId) {
-    const oauth2Client = new OAuth2Client(
-      CLIENT_ID,
-      CLIENT_SECRET,
-      REDIRECT_URI
-    )
-
-    oauth2Client.setCredentials({
-      access_token: token.access_token,
-      refresh_token: token.refresh_token
-    })
-
-    const classroom = google.classroom({
-      version: 'v1',
-      auth: oauth2Client
-    })
-
-    return new Promise(async (resolve, reject) => {
-      classroom.courses.courseWork.list(
-        {
-          auth: oauth2Client,
-          courseId: courseId
-        },
-        async (err, res) => {
-          if (err) {
-            reject(err)
-          }
-
-          const courseWorks = await res.data.courseWork
-
-          resolve(await courseWorks)
-        }
-      )
-    })
-  }
-
-  async getCourses(token) {
-    const oauth2Client = new OAuth2Client(
-      CLIENT_ID,
-      CLIENT_SECRET,
-      REDIRECT_URI
-    )
-
-    oauth2Client.setCredentials({
-      access_token: token.access_token,
-      refresh_token: token.refresh_token
-    })
-
-    const classroom = google.classroom({
-      version: 'v1',
-      auth: oauth2Client
-    })
-
-    return new Promise((resolve, reject) => {
-      classroom.courses.list(
-        {
-          courseStates: 'ACTIVE'
-        },
-        (err, res) => {
-          if (err) {
-            reject(err)
-          }
-
-          const courses = res.data.courses
-
-          resolve(courses)
-        }
-      )
-    })
-  }
+  
 }
 
 module.exports = {
@@ -672,7 +579,7 @@ module.exports = {
 }
 
 // Sends response messages via the Send API
-function callSendAPI(sender_psid, response) {
+function callSendAPI (sender_psid, response) {
   // Construct the message body
   let request_body = {
     recipient: {
