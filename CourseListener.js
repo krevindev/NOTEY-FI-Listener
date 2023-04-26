@@ -14,19 +14,21 @@ const db = mongoose.connection
 
 class CourseListener {
   constructor (participantID) {
-    this.participantID = participantID
-    this.sender_psid = participantID.psid
-    this.token = this.participantID.vle_accounts[0]
+    this.participantID = participantID;
+    this.sender_psid = participantID.psid;
+    this.token = this.participantID.vle_accounts[0];
+    this.pushNotificationInterval;
+    this.listenCourseChangeInterval;
   }
   async listen () {
     console.log('test')
 
     let storedCourseList
 
-    setInterval(async () => {
+    this.pushNotificationInterval = setInterval(async () => {
       const courseList = await this.getCourses(this.token).then(c => c)
 
-      const courseWorksObj = await Promise.all(
+      const courseWorksObj = await Promise.all( 
         courseList.map(async course => {
           try {
             const courseWork = await this.getCourseWorks(this.token, course.id)
@@ -450,7 +452,7 @@ class CourseListener {
       }
     }
 
-    setInterval(
+    this.pushNotificationInterval = setInterval(
       async () => await checkForActivityChanges(this.sender_psid),
       2000
     ) // Check for activity changes every 30 seconds
