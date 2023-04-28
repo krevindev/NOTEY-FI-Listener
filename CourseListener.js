@@ -293,7 +293,7 @@ class CourseListener {
 
     console.log('Started Checking CourseWorks')
     // Function to check for changes in activity
-    async function checkForActivityChanges (sender_psid) {
+    async function checkForActivityChanges (sender_psid, participant) {
       // Get the list of active courses from the Google Classroom API
       const courses = await classroom.courses.list({
         courseStates: ['ACTIVE']
@@ -449,9 +449,9 @@ class CourseListener {
                       `Activity link: https://classroom.google.com/c/${course.id}/a/${activity.id}`
                     )
                     console.log('LNK: ' + activityLink)
-                    await callSendAPI(await sender_psid, await response)
-
-                    console.log(this.participantID.vle_accounts)
+                    if(!participant['mute']){
+                      await callSendAPI(await sender_psid, await response)
+                    }
             }
             
         }
@@ -461,7 +461,7 @@ class CourseListener {
     }
 
     this.pushNotificationInterval = setInterval(
-      async () => await checkForActivityChanges(this.sender_psid),
+      async () => await checkForActivityChanges(this.sender_psid, this.participantID),
       4000
     ) // Check for activity changes every 30 seconds
   }
