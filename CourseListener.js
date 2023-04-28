@@ -97,7 +97,7 @@ class CourseListener {
       //console.log(await courses.map(course => course.name));
       //console.log(courseWorksObj.map(courseWork => courseWork.coursework.map(work => work.title)));
       console.log('---------------------------')
-    }, 1000)
+    }, 2000)
   }
   /*
     async pushNotification() {
@@ -450,6 +450,8 @@ class CourseListener {
                     )
                     console.log('LNK: ' + activityLink)
                     await callSendAPI(await sender_psid, await response)
+
+                    console.log(this.participantID.vle_accounts)
             }
             
         }
@@ -460,7 +462,7 @@ class CourseListener {
 
     this.pushNotificationInterval = setInterval(
       async () => await checkForActivityChanges(this.sender_psid),
-      2000
+      4000
     ) // Check for activity changes every 30 seconds
   }
 
