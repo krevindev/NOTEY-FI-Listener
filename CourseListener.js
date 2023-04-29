@@ -575,7 +575,7 @@ class CourseListener {
         // Update courses list
         courses = currentCourses
 
-        if (firstTime) 
+        if (firstTime) {
           firstTime = false
         }
       })
