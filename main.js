@@ -4,6 +4,7 @@ const request = require('request'),
   app = express().use(body_parser.json()),
   axios = require('axios')
 const mongoose = require('./useDB.js');
+const db = mongoose.connection;
 
 
 const CourseListener = require('./CourseListener').CourseListener;
