@@ -45,7 +45,6 @@ db.once('open', async () => {
       }
     })
   });
-
 })
 
 // Sets server port and logs message on success
