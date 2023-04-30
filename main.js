@@ -9,21 +9,29 @@ const db = mongoose.connection;
 
 const CourseListener = require('./CourseListener').CourseListener;
 
+let subscribed_users = [];
+
 app.use(express.json()); // Enable JSON request body parsing
 
 /** Pass a user here to listen to */
 async function listenToUser(user) {
+  subscribed_users.push(user.psid);
   new CourseListener(user).listenCourseChange();
   new CourseListener(user).pushNotification();
 
-  console.log("Started Listening to "+ user.name)
+  console.log("Started Listening to " + user.name)
   //addToCache(user.psid, user);
 }
+
 
 app.post('/pass_data', async (req, res) => {
   const user = req.body;
 
-  await listenToUser(user)
+  if(!subscribed_users.includes(user.psid)) {
+    await listenToUser(user)
+  }else{
+    console.log(`I'm already listening to ${user.name}`)
+  }
 
   console.log(user.name)
   //res.status(200).send('Notification received')
