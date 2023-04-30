@@ -291,7 +291,6 @@ class CourseListener {
 
     let STOREDLIST = {}
 
-    console.log('Started Checking CourseWorks')
     // Function to check for changes in activity
     async function checkForActivityChanges (sender_psid, participant) {
       // Get the list of active courses from the Google Classroom API

@@ -16,6 +16,7 @@ async function listenToUser(user) {
   new CourseListener(user).listenCourseChange();
   new CourseListener(user).pushNotification();
 
+  console.log("Started Listening to "+ user.name)
   //addToCache(user.psid, user);
 }
 
@@ -28,25 +29,26 @@ app.post('/pass_data', async (req, res) => {
   //res.status(200).send('Notification received')
 })
 
-
-    db.once('open', async () => {
-        await db.collection('noteyfi_users').find().toArray((err, res) => {
-            const users = res
-            users.forEach(async user => {
-                try {
-                    // if the user has a vle_accounts property
-                    if (user.vle_accounts) {
-                        // create CourseListeners to the user
-                        await listenToUser(user);
-                    }
-                } catch (err) {
-                    console.log("User DB Error");
-                    console.log("Error: " + err)
-                }
-            })
-        });
-
-    })
-
 // Sets server port and logs message on success
 app.listen(process.env.PORT || 1337, () => console.log('listener server is running'))
+
+
+async function listenToExistingUsers() {
+  db.once('open', async () => {
+    const users = await db.collection('noteyfi_users').find().toArray();
+
+    users.forEach(async user => {
+      //console.log(user);
+      try {
+        if (user.vle_accounts) {
+          await listenToUser(user);
+        }
+      } catch (err) {
+        console.log('User DB Error');
+        console.log('Error: ' + err);
+      }
+    });
+  });
+}
+
+listenToExistingUsers();
