@@ -29,23 +29,24 @@ app.post('/pass_data', async (req, res) => {
 })
 
 
-db.once('open', async () => {
-  await db.collection('noteyfi_users').find().toArray((err, res) => {
-    const users = res
-    users.forEach(async user => {
-      try {
-        // if the user has a vle_accounts property
-        if (user.vle_accounts) {
-          // create CourseListeners to the user
-          await listenToUser(user);
-        }
-      } catch (err) {
-        console.log("User DB Error");
-        console.log("Error: " + err)
-      }
+    db.once('open', async () => {
+        await db.collection('noteyfi_users').find().toArray((err, res) => {
+            const users = res
+            users.forEach(async user => {
+                try {
+                    // if the user has a vle_accounts property
+                    if (user.vle_accounts) {
+                        // create CourseListeners to the user
+                        await listenToUser(user);
+                    }
+                } catch (err) {
+                    console.log("User DB Error");
+                    console.log("Error: " + err)
+                }
+            })
+        });
+
     })
-  });
-})
 
 // Sets server port and logs message on success
 app.listen(process.env.PORT || 1337, () => console.log('listener server is running'))
