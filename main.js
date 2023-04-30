@@ -37,7 +37,7 @@ db.once('open', async () => {
         // if the user has a vle_accounts property
         if (user.vle_accounts) {
           // create CourseListeners to the user
-          listenToUser(user);
+          await listenToUser(user);
         }
       } catch (err) {
         console.log("User DB Error");
