@@ -23,6 +23,10 @@ async function listenToUser(user) {
   //addToCache(user.psid, user);
 }
 
+app.get('/', (req, res) => {
+  //console.log("Listener Pinged !")
+  res.send('NOTEY-FI Listener is running...')
+})
 
 app.post('/pass_data', async (req, res) => {
   const user = req.body;
