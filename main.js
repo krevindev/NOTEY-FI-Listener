@@ -57,13 +57,13 @@ app.post('/pass_data', async (req, res) => {
 
 
 app.post('/stop_listening', (req, res) => {
-  const { psid } = req.body;
+  const user = req.body;
 
 
-  const userIndex = subscribed_users.findIndex(u => u == psid);
+  const userIndex = subscribed_users.findIndex(u => u == user.psid);
 
   if (userIndex >= 0) {
-    const user = subscribed_users[userIndex];
+    //const user = subscribed_users[userIndex];
     const listener = new CourseListener(user);
 
     listener.stop();
@@ -72,8 +72,8 @@ app.post('/stop_listening', (req, res) => {
     console.log(`Stopped listening to user: ${user.name}`);
     res.status(200).send(`Stopped listening to user: ${user.name}`);
   } else {
-    console.log(`User with psid ${psid} not found`);
-    res.status(404).send(`User with psid ${psid} not found`);
+    console.log(`User with psid ${user.psid} not found`);
+    res.status(404).send(`User with psid ${user.psid} not found`);
   }
 })
 
