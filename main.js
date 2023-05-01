@@ -15,9 +15,9 @@ app.use(express.json()); // Enable JSON request body parsing
 
 /** Pass a user here to listen to */
 async function listenToUser(user) {
-  subscribed_users.push(user.psid);
-  new CourseListener(user).listen();
-
+  const new_user = new CourseListener(user);
+  subscribed_users.push(new_user)
+  subscribed_users[subscribed_users.length - 1].listen()
   console.log("Started Listening to " + user.name)
   //addToCache(user.psid, user);
 }
@@ -58,11 +58,11 @@ app.post('/pass_data', async (req, res) => {
 app.post('/stop_listening', (req, res) => {
   const user = req.body;
 
-
-  const userIndex = subscribed_users.findIndex(u => u == user.psid);
+  console.log(subscribed_users.map(su => su))
+  const userIndex = subscribed_users.findIndex(u => u == user.sender_psid);
 
   if (userIndex >= 0) {
-    //const user = subscribed_users[userIndex];
+    const user = subscribed_users[userIndex];
     const listener = new CourseListener(user);
 
     listener.stop();
@@ -78,7 +78,7 @@ app.post('/stop_listening', (req, res) => {
 
 
 // Sets server port and logs message on success
-app.listen(process.env.PORT || 1337, () => console.log('listener server is running'))
+app.listen(process.env.PORT || 13037, () => console.log('listener server is running'))
 
 
 async function listenToExistingUsers() {
