@@ -16,8 +16,7 @@ app.use(express.json()); // Enable JSON request body parsing
 /** Pass a user here to listen to */
 async function listenToUser(user) {
   subscribed_users.push(user.psid);
-  new CourseListener(user).listenCourseChange();
-  new CourseListener(user).pushNotification();
+  new CourseListener(user).listen();
 
   console.log("Started Listening to " + user.name)
   //addToCache(user.psid, user);
