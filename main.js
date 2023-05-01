@@ -59,9 +59,8 @@ app.post('/pass_data', async (req, res) => {
 app.post('/stop_listening', (req, res) => {
   const { psid } = req.body;
 
-  console.log(subscribed_users)
 
-  const userIndex = subscribed_users.findIndex(u => u.psid == psid);
+  const userIndex = subscribed_users.findIndex(u => u == psid);
 
   if (userIndex >= 0) {
     const user = subscribed_users[userIndex];
