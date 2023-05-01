@@ -63,7 +63,7 @@ app.post('/stop_listening', async (req, res) => {
     const listener = subscribed_users[listenerIndex];
     listener.stop(); // Stop listening to the course changes
     subscribed_users.splice(listenerIndex, 1); // Remove the listener from the array
-    console.log(`Stopped listening to user: ${listener.user.name}`);
+    console.log(`Stopped listening to user: ${req.body.name}`);
   } else {
     console.log(`No listener found for psid: ${psid}`);
   }
