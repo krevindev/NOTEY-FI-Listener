@@ -57,6 +57,8 @@ app.post('/pass_data', async (req, res) => {
 app.post('/stop_listening', async (req, res) => {
   const psid = req.body.psid;
 
+  console.log(req.body)
+
   const listenerIndex = subscribed_users.findIndex(su => String(su.participantID.psid) === String(psid));
 
   if (listenerIndex >= 0) {
