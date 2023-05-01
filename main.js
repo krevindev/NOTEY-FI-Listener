@@ -5,6 +5,8 @@ const request = require('request'),
   axios = require('axios')
 const mongoose = require('./useDB.js');
 const db = mongoose.connection;
+const moment = require('moment')
+
 
 
 const CourseListener = require('./CourseListener').CourseListener;
@@ -72,6 +74,103 @@ app.post('/stop_listening', async (req, res) => {
 
   res.status(200).send('Stop listening request received');
 });
+
+app.post('/set_reminder', async (req, res) => {
+  let body = await req.body
+  const sender_psid = await body.sender_psid[0]
+  const time = await body.time.substring(0, body.time.length - 1)
+  let timeUnit =
+    (await body.time[(await body.time.length) - 1]) === 'd'
+      ? 'days'
+      : (await body.time[(await body.time.length) - 1]) === 's'
+        ? 'seconds'
+        : (await body.time[(await body.time.length) - 1]) === 'h'
+          ? 'hours'
+          : (await body.time[(await body.time.length) - 1]) === 'm'
+            ? 'minutes'
+            : undefined
+  if (time == 1) timeUnit = timeUnit.substring(0, timeUnit.length - 1)
+  const course = await body.course
+  const courseWork = await body.courseWork
+
+  const dueDate = new Date(
+    courseWork.dueDate.year,
+    courseWork.dueDate.month - 1, // Subtract 1 from the month value
+    courseWork.dueDate.day,
+    courseWork.dueTime.hours !== undefined ? courseWork.dueTime.hours + 8 : 11,
+    courseWork.dueTime.minutes !== undefined ? courseWork.dueTime.minutes : 59
+  )
+
+  console.log('DATE:')
+  console.log(courseWork.dueDate)
+  console.log('TIME:')
+  console.log(courseWork.dueTime)
+
+  const reminderDate = await moment(await dueDate).subtract(
+    await time,
+    timeUnit
+  )
+  let currentDate = await moment(new Date()).add(8, 'hours')
+
+  const formattedReminderDate = reminderDate.format(
+    'dddd, MMMM Do YYYY, h:mm:ss a'
+  )
+  const formattedDueDate = moment(dueDate).format(
+    'dddd, MMMM Do YYYY, h:mm:ss a'
+  )
+  const formattedCurrentDate = moment(currentDate).format(
+    'dddd, MMMM Do YYYY, h:mm:ss a'
+  )
+
+  /** Date format end */
+
+  const response = {
+    attachment: {
+      type: 'template',
+      payload: {
+        template_type: 'button',
+        text: `REMINDER!
+        \nYou have an upcoming deadline for an activity!
+        \n
+        \n
+        \nCourse: \n${await course.name}
+        \nActivity: ${await courseWork.title}
+        `,
+        buttons: [
+          {
+            type: 'web_url',
+            url: courseWork.alternateLink,
+            title: `Go to Activity`,
+            webview_height_ratio: 'full'
+          },
+          {
+            type: 'postback',
+            title: `Return to Menu`,
+            webview_height_ratio: 'full',
+            payload: 'menu'
+          }
+        ]
+      }
+    }
+  }
+  async function getUser(sender_psid) {
+    return new Promise(async (resolve, reject) => {
+      await db
+        .collection('noteyfi_users')
+        .findOne({ psid: String(sender_psid) }, (err, result) => {
+          if (err) {
+            reject('Rejected')
+          } else {
+            resolve(result)
+          }
+        })
+    })
+  }
+
+  
+
+  new SetReminder(await reminderDate, await sender_psid, await response).start()
+})
 
 // app.post('/stop_listening', (req, res) => {
 //   const user = req.body;
