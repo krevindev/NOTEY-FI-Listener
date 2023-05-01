@@ -23,7 +23,11 @@ async function listenToUser(user) {
   console.log("Started Listening to " + user.name)
   //addToCache(user.psid, user);
 }
-
+//
+app.get('/', (req, res) => {
+  //console.log("Pinged!")
+  res.send('Listener Running...')
+})
 
 // app.post('/pass_data', async (req, res) => {
 //   const user = req.body;
