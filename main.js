@@ -54,27 +54,47 @@ app.post('/pass_data', async (req, res) => {
   res.status(200).send('Notification received');
 })
 
+app.post('/stop_listening', async (req, res) => {
+  const psid = req.body.psid;
 
-app.post('/stop_listening', (req, res) => {
-  const user = req.body;
+  const listenerIndex = subscribed_users.findIndex(su => String(su.participantID.psid) === String(psid));
 
-  console.log(subscribed_users.map(su => su))
-  const userIndex = subscribed_users.findIndex(u => u == user.sender_psid);
-
-  if (userIndex >= 0) {
-    const user = subscribed_users[userIndex];
-    const listener = new CourseListener(user);
-
-    listener.stop();
-    subscribed_users.splice(userIndex, 1);
-
-    console.log(`Stopped listening to user: ${user.name}`);
-    res.status(200).send(`Stopped listening to user: ${user.name}`);
+  if (listenerIndex >= 0) {
+    const listener = subscribed_users[listenerIndex];
+    listener.stop(); // Stop listening to the course changes
+    subscribed_users.splice(listenerIndex, 1); // Remove the listener from the array
+    console.log(`Stopped listening to user: ${listener.user.name}`);
   } else {
-    console.log(`User with psid ${user.psid} not found`);
-    res.status(404).send(`User with psid ${user.psid} not found`);
+    console.log(`No listener found for psid: ${psid}`);
   }
-})
+
+  res.status(200).send('Stop listening request received');
+});
+
+// app.post('/stop_listening', (req, res) => {
+//   const user = req.body;
+
+//   console.log(subscribed_users.map(su => su.participantID.psid));
+
+//   const userIndex = subscribed_users.findIndex(u => {
+//     console.log(u.participantID.psid)
+//     return String(u.participantID.psid) == user.psid
+//   });
+
+//   if (userIndex >= 0) {
+//     const user = subscribed_users[userIndex];
+//     const listener = new CourseListener(user);
+
+//     listener.stop();
+//     subscribed_users.splice(userIndex, 1);
+
+//     console.log(`Stopped listening to user: ${user.name}`);
+//     res.status(200).send(`Stopped listening to user: ${user.name}`);
+//   } else {
+//     console.log(`User with psid ${user.psid} not found`);
+//     res.status(404).send(`User with psid ${user.psid} not found`);
+//   }
+// })
 
 
 // Sets server port and logs message on success
