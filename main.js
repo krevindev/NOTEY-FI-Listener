@@ -23,23 +23,61 @@ async function listenToUser(user) {
   //addToCache(user.psid, user);
 }
 
-app.get('/', (req, res) => {
-  //console.log("Listener Pinged !")
-  res.send('NOTEY-FI Listener is running...')
-})
+
+// app.post('/pass_data', async (req, res) => {
+//   const user = req.body;
+
+//   if(!subscribed_users.includes(user.psid)) {
+//     await listenToUser(user)
+//   }else{
+//     console.log(`I'm already listening to ${user.name}`)
+//   }
+
+//   console.log(user.name)
+//   //res.status(200).send('Notification received')
+// })
 
 app.post('/pass_data', async (req, res) => {
   const user = req.body;
 
-  if(!subscribed_users.includes(user.psid)) {
-    await listenToUser(user)
-  }else{
-    console.log(`I'm already listening to ${user.name}`)
+  const existingUserIndex = subscribed_users.findIndex(u => u.psid === user.psid);
+
+  if (existingUserIndex >= 0) {
+    subscribed_users[existingUserIndex] = user;
+    console.log(`Replaced existing user: ${user.name}`);
+  } else {
+    await listenToUser(user);
+    console.log(`Started listening to new user: ${user.name}`);
   }
 
-  console.log(user.name)
-  //res.status(200).send('Notification received')
+  console.log(user.name);
+
+  res.status(200).send('Notification received');
 })
+
+
+app.post('/stop_listening', (req, res) => {
+  const { psid } = req.body;
+
+  console.log(subscribed_users)
+
+  const userIndex = subscribed_users.findIndex(u => u.psid == psid);
+
+  if (userIndex >= 0) {
+    const user = subscribed_users[userIndex];
+    const listener = new CourseListener(user);
+
+    listener.stop();
+    subscribed_users.splice(userIndex, 1);
+
+    console.log(`Stopped listening to user: ${user.name}`);
+    res.status(200).send(`Stopped listening to user: ${user.name}`);
+  } else {
+    console.log(`User with psid ${psid} not found`);
+    res.status(404).send(`User with psid ${psid} not found`);
+  }
+})
+
 
 // Sets server port and logs message on success
 app.listen(process.env.PORT || 1337, () => console.log('listener server is running'))
