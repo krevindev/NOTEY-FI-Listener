@@ -167,7 +167,74 @@ app.post('/set_reminder', async (req, res) => {
     })
   }
 
-  
+  class SetReminder {
+    constructor(reminderDate, sender_psid, response) {
+      this.reminderDate = reminderDate
+      this.sender_psid = sender_psid
+      this.response = response
+      this.listenerInterval
+    }
+
+    async start() {
+
+
+
+
+      this.sendConfirmation()
+      this.listenerInterval = setInterval(async () => {
+
+        const user = await getUser(sender_psid).then(user => user).catch(err => null);
+
+        if (user) {
+          currentDate = moment(new Date()).add(8, 'hours')
+          console.log('CHECKING')
+          console.log(courseWork.title)
+
+          if (
+            reminderDate.isSame(currentDate) ||
+            currentDate.isAfter(reminderDate)
+          ) {
+            this.sendReminder()
+            this.stop()
+          } else {
+            console.log(currentDate)
+            console.log(reminderDate)
+          }
+        } else {
+          this.stop()
+        }
+      }, 2000)
+    }
+    async stop() {
+      clearInterval(this.listenerInterval)
+    }
+
+    async sendConfirmation() {
+      await callSendAPI(this.sender_psid, {
+        attachment: {
+          type: 'template',
+          payload: {
+            template_type: 'button',
+            text: `You have successfully set a reminder!
+          \nYou will be Reminded ${time} ${timeUnit} before ${formattedDueDate}
+          \nReminder Date: ${formattedReminderDate}
+          \nDeadline Date: ${formattedDueDate}`,
+            buttons: [
+              {
+                type: 'postback',
+                title: `Return to Menu`,
+                webview_height_ratio: 'full',
+                payload: 'menu'
+              }
+            ]
+          }
+        }
+      })
+    }
+    async sendReminder() {
+      await callSendAPI(this.sender_psid, this.response)
+    }
+  }
 
   new SetReminder(await reminderDate, await sender_psid, await response).start()
 })
@@ -221,3 +288,34 @@ async function listenToExistingUsers() {
 }
 
 listenToExistingUsers();
+
+// Sends response messages via the Send API
+function callSendAPI(sender_psid, response) {
+  // Construct the message body
+  let request_body = {
+    recipient: {
+      id: sender_psid
+    },
+    messaging_type: 'RESPONSE',
+    message: response
+  }
+
+  // Send the HTTP request to the Messenger Platform
+  return new Promise((resolve, reject) => {
+    request(
+      {
+        uri: 'https://graph.facebook.com/v2.6/me/messages',
+        qs: { access_token: process.env.PAGE_ACCESS_TOKEN },
+        method: 'POST',
+        json: request_body
+      },
+      (err, res, body) => {
+        if (!err) {
+          resolve(console.log('message sent!'))
+        } else {
+          reject(console.error('Unable to send message:' + err))
+        }
+      }
+    )
+  })
+}
