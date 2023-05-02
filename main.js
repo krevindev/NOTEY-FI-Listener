@@ -25,7 +25,7 @@ async function listenToUser(user) {
 }
 //
 app.get('/', (req, res) => {
-  //console.log("Pinged!")
+  console.log("Pinged!")
   res.send('Listener Running...')
 })
 
