@@ -21,6 +21,7 @@ async function listenToUser(user) {
   subscribed_users.push(new_user)
   subscribed_users[subscribed_users.length - 1].listen()
   console.log("Started Listening to " + user.name)
+  console.log("PSID: "+user.psid)
   //addToCache(user.psid, user);
 }
 //
@@ -53,6 +54,7 @@ app.post('/pass_data', async (req, res) => {
   } else {
     await listenToUser(user);
     console.log(`Started listening to new user: ${user.name}`);
+    console.log("PSID: "+user.psid)
   }
 
   console.log(user.name);
